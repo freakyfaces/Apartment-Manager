@@ -9,13 +9,18 @@ import matplotlib.dates as mdates
 def DIV(selected_row, div, initial_info):
     if div == '--d':
         if selected_row['Category'] == 'Ghabz':
-            return DIV(selected_row, '--r', initial_info)
+            if selected_row['SubCategory'] == 'avarez':
+                return DIV(selected_row, '--e', initial_info)
+            else:
+                return DIV(selected_row, '--r', initial_info)
         elif selected_row['Category'] == 'nezafat':
             return DIV(selected_row, '--a', initial_info)
         elif selected_row['Category'] == 'parking':
             return DIV(selected_row, '--p', initial_info)
         elif selected_row['Category'] == 'tamirat':
             return DIV(selected_row, '--e', initial_info)
+        elif selected_row['Category'] == 'asansor':
+            return DIV(selected_row, '--el', initial_info)
         else:
             return DIV(selected_row, '--a', initial_info)
     elif div == '--a':
@@ -43,6 +48,13 @@ def DIV(selected_row, div, initial_info):
         t = []
         for i in selected_row['Units']:
             t.append(l / len(selected_row['Units']))
+        return t
+    elif div == '--el':
+        t = []
+        r = initial_info.floor[initial_info.name.isin(selected_row['Units'])].sum()
+        for i in selected_row['Units']:
+            l = int(initial_info.loc[initial_info['name'] == i, 'floor']) / r
+            t.append(l * int(selected_row['Total Amount']))
         return t
     else:
         t = []

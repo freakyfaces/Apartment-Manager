@@ -65,6 +65,7 @@ def DIV(selected_row, div, initial_info):
         return t
 
 
+
 def plot(h, saved):
     h[1] = list(map(lambda x: int(x), h[1].split('-')))
     h[2] = list(map(lambda x: int(x), h[2].split('-')))
@@ -72,18 +73,17 @@ def plot(h, saved):
     if h[0] == 'units':
         info = []
         info.append(input('please enter which units ? (you can write all!)').split())
-        info.append(input('please enter which SubCategories ? (you can write all!)').split())
+        info.append(input('please enter which SubCategories or Categories? (you can write all!)').split())
         if info[0] == ['all']:
             info[0] = pd.Series(saved['Unit'].unique()).dropna()
         if info[1] == ['all']:
             saved['SubCategory'] = saved['SubCategory'].replace('###', np.nan)
-            info[1] = pd.Series(saved['SubCategory'].unique()).dropna()
-        x = x[x['SubCategory'].isin(info[1])]
+            info[1] = pd.Series(saved['Category'].unique()).dropna()
+        x = x[(x['SubCategory'].isin(info[1])) | (x['Category'].isin(info[1]))]
         for i in info[0]:
             y = x[x.Unit == i].copy()
             y['Amount'] = y['Amount'].cumsum()
             plt.plot(mdates.num2date(mdates.date2num(y['Time'])), y['Amount'])
-            # plt.fill_between(mdates.date2num(y['Time']), y['Amount'], alpha=0.55)
         labels = ''
         for i in info[1]:
             labels += i + ' '
@@ -94,21 +94,18 @@ def plot(h, saved):
         plt.title('Amount of {} over Time'.format(labels))
         plt.show()
     elif h[0] == 'plot':
-        j = 0
-        color = ['r', 'b', 'g', 'y', 'k']
-        h.append(input('type SubCategories you want with "," (bargh,Water,gaz ... )'))
-        for i in h[3].split(','):
+        h.append(input('type SubCategories you want like: bargh Water gaz ... '))
+        for i in h[3].split():
             y = x[x['SubCategory'] == i].copy()
             y['Total Amount'] = x['Total Amount'].cumsum()
             plt.plot(mdates.num2date(mdates.date2num(y['Time'])), y['Total Amount'])
-            # plt.fill_between(mdates.date2num(y['Time']), y['Total Amount'], alpha=0.55)
-            j += 1
         plt.xticks(rotation=65)
-        plt.legend(h[3].split(','))
+        plt.legend(h[3].split())
         plt.xlabel('Time')
         plt.ylabel('Amount')
         plt.title('Amount of {} over Time'.format(h[3]))
         plt.show()
+
 
 
 def Bills(t1, t2, saved):

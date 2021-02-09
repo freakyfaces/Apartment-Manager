@@ -119,11 +119,11 @@ def Bills(t1, t2, saved):
     else:
         info = info.split()
     mainbill = pd.DataFrame()
-    for i in info:
-        Bill = form[(form['SubCategory'].isnull()) & (form.Unit == i)]
-        Bill = Bill.groupby('Category').aggregate({'Amount': 'sum'})
-        B = form[~(form['SubCategory'].isnull()) & (form.Unit == i)]
-        B = B.groupby('SubCategory').aggregate({'Amount': 'sum'})
+    for i in info: #for every unit that user wants
+        Bill = form[(form['SubCategory'].isnull()) & (form.Unit == i)] #filtering those categories that doesn't have subcategory
+        Bill = Bill.groupby('Category').aggregate({'Amount': 'sum'}) #total amount
+        B = form[~(form['SubCategory'].isnull()) & (form.Unit == i)]  #filtering those categories that have subcategory
+        B = B.groupby('SubCategory').aggregate({'Amount': 'sum'}) #total amount
         Bill = Bill.append(B)
         Bill[i] = Bill["Amount"]
         del Bill["Amount"]
@@ -138,26 +138,28 @@ def Bills(t1, t2, saved):
 
 def report(main_info):
     main_info['SubCategory'] = main_info['SubCategory'].replace('###', np.nan)
-    s = main_info[~main_info['SubCategory'].isnull()]
-    Receipt = s.groupby('SubCategory').aggregate({'Total Amount': 'sum'})
+    s = main_info[~main_info['SubCategory'].isnull()]  #filtering those categories that doesn't have subcategory 
+    Receipt = s.groupby('SubCategory').aggregate({'Total Amount': 'sum'}) 
     total = s['Total Amount'].sum()
-    Receipt['Ratio(%)'] = (Receipt['Total Amount'] * 100) / total
+    Receipt['Ratio(%)'] = (Receipt['Total Amount'] * 100) / total 
     Receipt = Receipt.drop(columns='Total Amount')
-    costs = main_info[main_info['Category'] != 'charge']
-    charge = main_info[main_info['Category'] == 'charge']
+    costs = main_info[main_info['Category'] != 'charge'] #keeping Costs
+    charge = main_info[main_info['Category'] == 'charge'] #keeping incomes
     Report = costs.groupby('Category').aggregate({'Total Amount': 'sum'})
-    Charge = charge['Total Amount'].sum()
-    Costs = costs['Total Amount'].sum()
+    Charge = charge['Total Amount'].sum() #total amount of incomes
+    Costs = costs['Total Amount'].sum() #total amount of costs
     Report['Ratio(%)'] = (Report['Total Amount'] * 100) / Costs
     Report = Report.drop(columns='Total Amount')
     Report = pd.DataFrame([Report['Ratio(%)']], columns=Report.index[:])
     Receipt = pd.DataFrame([Receipt['Ratio(%)']], columns=Receipt.index[:])
     Existence = Charge - Costs
     if Existence < 0:
-        if abs(Existence) > (Charge / 2):
+        if abs(Existence) > (Charge / 2): 
             Status = 'Red'
-        elif abs(Existence) <= (Charge / 2):
+        elif abs(Existence) <= (Charge / 2) and abs(Existence) > (Charge*0.2):
             Status = 'Yellow'
+        else:
+            Status='Green'
     else:
         Status = 'Green'
     print('this is the ratio of each SubCategory  : ')
@@ -168,6 +170,7 @@ def report(main_info):
     print(Existence)
     print('the Statuse of the building is:')
     print(Status)
+
 
 
 def balancesheet(t1: str, t2: str, saved):

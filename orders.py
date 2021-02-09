@@ -220,8 +220,9 @@ def constantprices(t1, t2, saved):
                                                  'SubCategory'], as_index=False).aggregate({'Amount': 'mean'})
     for j in prediction.index:
         for i in pursestringsmean.index:
-            if prediction.loc[j, 'Time'][:4] == pursestringsmean.loc[i,'Time'] and prediction[
-                'SubCategory'][j] == pursestringsmean['SubCategory'][i] and prediction['Unit'][j]==pursestringsmean['Unit'][i]:
+            if prediction.loc[j, 'Time'][:4] == pursestringsmean.loc[i, 'Time'] and \
+                    prediction['SubCategory'][j] == pursestringsmean['SubCategory'][i] and \
+                    prediction['Unit'][j] == pursestringsmean['Unit'][i]:
                 prediction['Inflation Amount'][j] = prediction['Amount'][j] - pursestringsmean['Amount'][i]
     T1 = '1397-01-01'
     T1 = datetime.strptime(T1, '%Y-%m-%d')

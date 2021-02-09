@@ -185,13 +185,14 @@ def balancesheet(t1: str, t2: str, saved):
     t1 = list(map(lambda x: int(x), t1.split('-')))
     t2 = list(map(lambda x: int(x), t2.split('-')))
     form = saved[(saved['Time'] >= jdatetime.date(*t1)) & (saved['Time'] <= jdatetime.date(*t2))].copy()
-    charges = form[(form['Category'] == 'charge')].copy()
+    charges = form[(form['Category'] == 'charge')].copy()#seprating charges from costs
     costs = form[(form['Category'] != 'charge')].copy()
     costs = costs.groupby('Unit').aggregate({'Amount': 'sum'})
     costs = costs.groupby('Unit').aggregate({'Amount': 'sum'}).reset_index()
     charges = charges.groupby('Unit').aggregate({'Amount': 'sum'}).reset_index()
     for i in costs.index:
-        costs['Amount'][i] = (costs['Amount'][i]) * (-1)
+        costs['Amount'][i] = (costs['Amount'][i]) * (-1)#making it all negetive so if there is no charghes,
+        #the condition will be considered as debtor
     balancesheet = costs.copy()
     balancesheet['Condition'] = np.nan
     for i in charges.index[:]:
@@ -218,13 +219,13 @@ def constantprices(t1, t2, saved):
     pursestringsmean.Time = pursestringsmean.Time.str[:4]
     pursestringsmean = pursestringsmean.groupby(['Time', 'Unit', 'Category',
                                                  'SubCategory'], as_index=False).aggregate({'Amount': 'mean'})
-    for j in prediction.index:
+    for j in prediction.index:#finding the differences between real amounts and the maen
         for i in pursestringsmean.index:
-            if prediction.loc[j, 'Time'][:4] == pursestringsmean.loc[i, 'Time'] and \
-                    prediction['SubCategory'][j] == pursestringsmean['SubCategory'][i] and \
-                    prediction['Unit'][j] == pursestringsmean['Unit'][i]:
+            if prediction.loc[j, 'Time'][:4] == pursestringsmean.loc[i,'Time'] and prediction[
+                'SubCategory'][j] == pursestringsmean['SubCategory'][i] and prediction['Unit'][j]==pursestringsmean['Unit'][i]:
                 prediction['Inflation Amount'][j] = prediction['Amount'][j] - pursestringsmean['Amount'][i]
-    T1 = '1397-01-01'
+    T1 = '1397-01-01'#to make the type of values of date column as an integer for fitting a line, calculate the days before or after 
+    #a specific date until each date in this column
     T1 = datetime.strptime(T1, '%Y-%m-%d')
     for i in prediction.index:
         T2 = prediction['Time'][i]
@@ -235,7 +236,7 @@ def constantprices(t1, t2, saved):
             prediction['Time'][i] = (T2 - T1).days
     fprediction = pd.DataFrame(
         columns=(['Year', 'Unit', 'Category', 'SubCategory', 'Amount', 'Inflation', 'Final Amount']))
-    for Unit,prediction_Unit in prediction.groupby('Unit'):
+    for Unit,prediction_Unit in prediction.groupby('Unit'):#fitting a line for inflation and constantprices based on time and amount by filtering category
         for Category, prediction_Category in prediction.groupby('Category'):
             if Category == 'Ghabz':
                 for SubCategory, prediction_SubCategory in prediction.groupby('SubCategory'):

@@ -7,7 +7,7 @@ import matplotlib.dates as mdates
 
 
 def DIV(selected_row, div, initial_info):
-    if div == '--d':
+    if div == '--d':  # checking cases for default division
         if selected_row['Category'] == 'Ghabz':
             if selected_row['SubCategory'] == 'avarez':
                 return DIV(selected_row, '--e', initial_info)
@@ -20,43 +20,43 @@ def DIV(selected_row, div, initial_info):
         elif selected_row['Category'] == 'tamirat':
             return DIV(selected_row, '--e', initial_info)
         elif selected_row['Category'] == 'asansor':
-            return DIV(selected_row, '--el', initial_info)
+            return DIV(selected_row, '--f', initial_info)
         else:
             return DIV(selected_row, '--a', initial_info)
-    elif div == '--a':
+    elif div == '--a':  # division by area 
         t = []
         r = initial_info.area[initial_info.name.isin(selected_row['Units'])].sum()
         for i in selected_row['Units']:
             l = int(initial_info.loc[initial_info['name'] == i, 'area']) / r
             t.append(l * int(selected_row['Total Amount']))
         return t
-    elif div == '--p':
+    elif div == '--p':  # division by number of parkings 
         t = []
         r = initial_info.parkings[initial_info.name.isin(selected_row['Units'])].sum()
         for i in selected_row['Units']:
             l = int(initial_info.loc[initial_info['name'] == i, 'parkings']) / r
             t.append(l * int(selected_row['Total Amount']))
         return t
-    elif div == '--r':
+    elif div == '--r':  # division by residents 
         t = []
         r = initial_info.residents[initial_info.name.isin(selected_row['Units'])].sum()
         for i in selected_row['Units']:
             l = int(initial_info.loc[initial_info['name'] == i, 'residents']) / r
             t.append(l * int(selected_row['Total Amount']))
         return t
-    elif div == '--e':
+    elif div == '--e':  # equal division
         t = []
         for i in selected_row['Units']:
             t.append(l / len(selected_row['Units']))
         return t
-    elif div == '--el':
+    elif div == '--f':  # division by floor
         t = []
         r = initial_info.floor[initial_info.name.isin(selected_row['Units'])].sum()
         for i in selected_row['Units']:
             l = int(initial_info.loc[initial_info['name'] == i, 'floor']) / r
             t.append(l * int(selected_row['Total Amount']))
         return t
-    else:
+    else:  # in case that user inputs type of division by percentage of each unit (like : 40-30-30)
         t = []
         r = 100
         for i in div.split('-'):
@@ -65,25 +65,30 @@ def DIV(selected_row, div, initial_info):
         return t
 
 
-
 def plot(h, saved):
+    # selecting datas that are between the given dates !
     h[1] = list(map(lambda x: int(x), h[1].split('-')))
     h[2] = list(map(lambda x: int(x), h[2].split('-')))
     x = saved[(saved['Time'] >= jdatetime.date(*h[1])) & (saved['Time'] <= jdatetime.date(*h[2]))].copy()
     if h[0] == 'units':
+        # getting the necessary info for the plot from user !
         info = []
         info.append(input('please enter which units ? (you can write all!)').split())
         info.append(input('please enter which SubCategories or Categories? (you can write all!)').split())
+        # getting the all units and categories from saved DataFrame
         if info[0] == ['all']:
             info[0] = pd.Series(saved['Unit'].unique()).dropna()
         if info[1] == ['all']:
             saved['SubCategory'] = saved['SubCategory'].replace('###', np.nan)
             info[1] = pd.Series(saved['Category'].unique()).dropna()
-        x = x[(x['SubCategory'].isin(info[1])) | (x['Category'].isin(info[1]))]
+        x = x[(x['SubCategory'].isin(info[1])) | (x['Category'].isin(info[1]))] # selecting datas that are in requested/
+        # /category (or subCategory)
+        # ploting datas for each unit
         for i in info[0]:
             y = x[x.Unit == i].copy()
             y['Amount'] = y['Amount'].cumsum()
             plt.plot(mdates.num2date(mdates.date2num(y['Time'])), y['Amount'])
+        # adding some elements to the plot to make it more exciting!
         labels = ''
         for i in info[1]:
             labels += i + ' '
@@ -95,16 +100,19 @@ def plot(h, saved):
         plt.show()
     elif h[0] == 'plot':
         h.append(input('type SubCategories you want like: bargh Water gaz ... '))
+        # plotting datas for each SubCategory
         for i in h[3].split():
             y = x[x['SubCategory'] == i].copy()
             y['Total Amount'] = x['Total Amount'].cumsum()
             plt.plot(mdates.num2date(mdates.date2num(y['Time'])), y['Total Amount'])
+        # adding some elements to the plot to make it more exciting!
         plt.xticks(rotation=65)
         plt.legend(h[3].split())
         plt.xlabel('Time')
         plt.ylabel('Amount')
         plt.title('Amount of {} over Time'.format(h[3]))
         plt.show()
+
 
 
 

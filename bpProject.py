@@ -74,7 +74,7 @@ while True:
             do.balancesheet(ord.split()[1], ord.split()[2], saved)
         elif ord.split()[0] == 'constantprices':
             do.constantprices(ord.split()[1], ord.split()[2], saved)
-        else:   # error if the order that was typed wasn't in right format
+        else:   # error if the order that was typed wasn't defined
             print('Please type your order in the right format!')
     except:  # error if the elements that user typed wasn't in right format
         print('Oops... ! Please type your order in the right format!')
